@@ -13,6 +13,25 @@ namespace Project1 {
                 layers[i] = new Layer (midLayersNodes, layers[i-1].nodes.Length * midLayersNodes);
             }
         }
+
+        public float[] GetOutputs (float[] inputs) {
+            layers[0].nodes = inputs;
+
+            for (int i = 1; i < layers.Length; i++) {
+                for (int j = 0; j < layers[i].nodes.Length; j++) {
+                    for (int k = 0; k < layers[i - 1].nodes.Length; k++) {
+                        layers[i].nodes[j] += layers[i - 1].nodes[k] * layers[i].weights[k * layers[i].nodes.Length + j];
+                    }
+                    layers[i].nodes[j] += layers[i].biases[j];
+                }
+            }
+
+            return layers[^1].nodes;
+        }
+
+        public void Mutate () {
+
+        }
     }
 
     internal class Layer {
