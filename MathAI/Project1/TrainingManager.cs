@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace Project1 {
     internal class TrainingManager {
-        public NeuralNetwork[] neuralNetworks;
-        public int inputSize, batchSize;
+        private NeuralNetwork[] neuralNetworks;
+        private float[] costs;
+        private int inputSize, batchSize;
+        private int testNbr = 8;
 
         public void TrainingInit (int batchSize, int inputNodes, int outputNodes, int midLayers, int midLayersNodes) {
             neuralNetworks = new NeuralNetwork[batchSize];
+            costs = new float[batchSize];
             for (int i = 0; i < batchSize; i++) {
                 neuralNetworks[i] = new NeuralNetwork(inputNodes, outputNodes, midLayers, midLayersNodes);
             }
@@ -42,19 +45,45 @@ namespace Project1 {
             return points;
         }
 
-        public void TrainingUpdate () {
+        public float GetCost (float[] function, float[] result) {
+            float cost = MathF.Pow (function[0] - result[0], 2);
+            for (int i = 1; i < function.Length; i++) {
+                cost += MathF.Pow (function[i] - result[i], 2);
+            }
+
+            return cost;
+        }
+
+        public void Train () {
+            // Get function, points and inputs
             float[] function = GetFunction ();
             Vector2[] points = GetPoints (function);
 
             float[] inputs = new float[inputSize];
+            for (int i = 0; i < inputSize; i++) {
+                inputs[i] = points[i].X;
+                i++;
+                inputs[i] = points[i].Y;
+            }
 
+            // Get results and cost
             float[,] results = new float[batchSize, inputSize];
-            for (int i = 0; i < batchSize; i++ ) {
+            for (int i = 0; i < batchSize; i++) {
                 float[] _res = neuralNetworks[i].GetOutputs (inputs);
+                costs[i] += GetCost (function, _res);
+
                 for (int j = 0; j < inputSize; j++) {
                     results[i, j] = _res[j];
                 }
             }
+        }
+
+        public void TrainingUpdate () {
+            for (int i = 0; i < testNbr; i++) {
+                Train ();
+            }
+
+
         }
     }
 }
